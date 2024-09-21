@@ -4,4 +4,5 @@ import com.emazon.cart.domain.model.ShoppingCart;
 
 public interface IShoppingCartServicePort {
     void addProductToShoppingCart(ShoppingCart shoppingCart);
+    void removeProductFromShoppingCart(Long productId);
 }

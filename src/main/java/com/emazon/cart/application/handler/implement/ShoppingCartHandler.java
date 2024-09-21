@@ -21,4 +21,9 @@ public class ShoppingCartHandler implements IShoppingCartHandler {
                 shoppingCartRequestMapper.toShoppingCart(shoppingCartRequest)
         );
     }
+
+    @Override
+    public void removeProductFromShoppingCart(Long productId) {
+        shoppingCartServicePort.removeProductFromShoppingCart(productId);
+    }
 }
