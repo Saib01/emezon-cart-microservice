@@ -36,14 +36,14 @@ class ShoppingCartUseCaseTest {
     }
 
     @Test
-    @DisplayName("Should save the brand and verify that the persistence port method is called once")
+    @DisplayName("Should save product from the shopping cart and verify that the persistence port method is called once")
     void saveShoppingCart() {
         prepareForSaveShoppingCart(TRUE);
         this.shoppingCartUseCase.addProductToShoppingCart(shoppingCart);
 
         ArgumentCaptor<ShoppingCart> shoppingCartCaptor = ArgumentCaptor.forClass(ShoppingCart.class);
 
-        verify(shoppingCartPersistencePort, times(1)).save(shoppingCartCaptor.capture());
+        verify(shoppingCartPersistencePort, times(ONE)).save(shoppingCartCaptor.capture());
         assertEquals(shoppingCartCaptor.getValue(), shoppingCart);
     }
 
@@ -98,4 +98,43 @@ class ShoppingCartUseCaseTest {
         when(this.shoppingCartPersistencePort.getProductIds(VALID_ID)).thenReturn(VALID_LIST_PRODUCTS_IDS);
         when(this.shoppingCartPersistencePort.validateMaxProductPerCategory(anyList())).thenReturn(validateMax);
     }
+
+    @Test
+    @DisplayName("Should remove the product from the shopping cart and verify that the persistence port method is called once")
+    void removeShoppingCart() {
+        when(this.shoppingCartPersistencePort.findByIdUserAndIdProduct(VALID_ID, VALID_ID_PRODUCT)).thenReturn(shoppingCart);
+        shoppingCart.setId(VALID_ID);
+        shoppingCart.setIdUser(VALID_ID);
+
+        shoppingCartUseCase.removeProductFromShoppingCart(VALID_ID_PRODUCT);
+
+        ArgumentCaptor<ShoppingCart> shoppingCartCaptor = ArgumentCaptor.forClass(ShoppingCart.class);
+
+        verify(shoppingCartPersistencePort, times(ONE)).save(shoppingCartCaptor.capture());
+        assertEquals(shoppingCartCaptor.getValue(), shoppingCart);
+    }
+
+    @Test
+    @DisplayName("It should not remove when the product does not exist in the Shopping cart")
+    void shouldNotRemoveProductWhenItDoesNotExistInCart() {
+        when(this.shoppingCartPersistencePort.findByIdUserAndIdProduct(VALID_ID, VALID_ID_PRODUCT)).thenReturn(null);
+        shoppingCart.setIdUser(VALID_ID);
+        assertThrows(ProductIdIsInvalidException.class,
+                () -> shoppingCartUseCase.removeProductFromShoppingCart(VALID_ID_PRODUCT)
+        );
+        verify(shoppingCartPersistencePort, never()).save(shoppingCart);
+    }
+    @Test
+    @DisplayName("Should not remove product when amount is zero")
+    void shouldNotRemoveProductWhenAmountIsZero() {
+        when(this.shoppingCartPersistencePort.findByIdUserAndIdProduct(VALID_ID, VALID_ID_PRODUCT)).thenReturn(shoppingCart);
+        shoppingCart.setIdUser(VALID_ID);
+        shoppingCart.setAmount(0);
+
+        assertThrows(ProductIdIsInvalidException.class,
+                () -> shoppingCartUseCase.removeProductFromShoppingCart(VALID_ID_PRODUCT)
+        );
+        verify(shoppingCartPersistencePort, never()).save(shoppingCart);
+    }
+
 }

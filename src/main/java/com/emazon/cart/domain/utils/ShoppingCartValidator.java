@@ -23,9 +23,9 @@ import static org.hibernate.type.descriptor.java.IntegerJavaType.ZERO;
 public class ShoppingCartValidator {
 
 
-    public static final String MONTH_NAME_FORMAT = "MMMM";
-    public static final String TEMPLATE_NO_STOCK_ERROR = "The restock is on the 15th of %s.";
-    public static final int MAX_ARTICLES_PER_CATEGORY = 3;
+    private static final String MONTH_NAME_FORMAT = "MMMM";
+    private static final String TEMPLATE_NO_STOCK_ERROR = "The restock is on the 15th of %s.";
+    private static final int MAX_ARTICLES_PER_CATEGORY = 3;
     private static final int RESTOCK_DATE = 15;
     private static final int ONE = 1;
     private static final int TWO = 2;
@@ -33,8 +33,8 @@ public class ShoppingCartValidator {
     private static final Map<String, Supplier<RuntimeException>> EXCEPTION_MAP = new HashMap<>();
 
     static {
-        EXCEPTION_MAP.put(TYPE_EXCEPTIONS[ZERO], () -> new ProductIdIsInvalidException(PRODUCT_ID_INVALID.getMessage()));
-        EXCEPTION_MAP.put(TYPE_EXCEPTIONS[ONE], () -> new AmountIsInvalidException(AMOUNT_INVALID.getMessage()));
+        EXCEPTION_MAP.put(TYPE_EXCEPTIONS[ZERO], () -> new ProductIdIsInvalidException(PRODUCT_ID_INVALID));
+        EXCEPTION_MAP.put(TYPE_EXCEPTIONS[ONE], () -> new AmountIsInvalidException(AMOUNT_INVALID));
         EXCEPTION_MAP.put(TYPE_EXCEPTIONS[TWO], () -> new InsufficientStockException(messageForExceptionInsufficientStock()));
     }
 
@@ -42,14 +42,19 @@ public class ShoppingCartValidator {
     }
 
     public static void addProductToShoppingCart(ShoppingCart shoppingCart, IShoppingCartPersistencePort shoppingCartPersistencePort) {
-        validateGreaterThanOrEqual(shoppingCart.getIdProduct(), TYPE_EXCEPTIONS[ZERO], ONE);
+        validateIdProduct(shoppingCart.getIdProduct());
+        validateAmount(shoppingCart,shoppingCartPersistencePort);
+        validateMaxProductPerCategory(shoppingCart, shoppingCartPersistencePort);
+    }
+    public static void validateIdProduct(Long id){
+        validateGreaterThanOrEqual(id, TYPE_EXCEPTIONS[ZERO], ONE);
+    }
+    private static void validateAmount(ShoppingCart shoppingCart,IShoppingCartPersistencePort shoppingCartPersistencePort){
         validateGreaterThanOrEqual(shoppingCart.getAmount().longValue(), TYPE_EXCEPTIONS[ONE], ONE);
         validateGreaterThanOrEqual(shoppingCartPersistencePort.getAmountByIdProduct(shoppingCart.getIdProduct()).longValue(), TYPE_EXCEPTIONS[TWO],
                 shoppingCart.getAmount()
         );
-        validateMaxProductPerCategory(shoppingCart, shoppingCartPersistencePort);
     }
-
     private static void validateMaxProductPerCategory(ShoppingCart shoppingCart, IShoppingCartPersistencePort shoppingCartPersistencePort) {
 
         ShoppingCart shoppingCartExist = shoppingCartPersistencePort.findByIdUserAndIdProduct(shoppingCart.getIdUser(), shoppingCart.getIdProduct());
@@ -60,7 +65,7 @@ public class ShoppingCartValidator {
         List<Long> productIds = new ArrayList<>(shoppingCartPersistencePort.getProductIds(shoppingCart.getIdUser()));
         productIds.add(shoppingCart.getIdProduct());
         if (productIds.size() > MAX_ARTICLES_PER_CATEGORY && !shoppingCartPersistencePort.validateMaxProductPerCategory(productIds)) {
-            throw new MaxProductsPerCategoryException(OUT_OF_STOCK.getMessage());
+            throw new MaxProductsPerCategoryException(OUT_OF_STOCK);
         }
     }
 

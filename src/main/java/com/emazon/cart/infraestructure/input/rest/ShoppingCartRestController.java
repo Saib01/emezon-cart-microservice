@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import static com.emazon.cart.infraestructure.util.InfraestructureRestControllerConstants.*;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
@@ -37,9 +36,18 @@ public class ShoppingCartRestController {
         return ResponseEntity.ok(RESPONSE_DESCRIPTION_ADD_SUCCESSFUL);
     }
 
-
-    @DeleteMapping("/{cartId}/remove-item/{itemId}")
-    public ResponseEntity<Void> removeItemFromShoppingCart(@PathVariable int cartId, @PathVariable int itemId) {
+    @Operation(summary = SUMMARY_REMOVE_PRODUCT)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = RESPONSE_CODE_SUCCESS, description = RESPONSE_DESCRIPTION_REMOVE_SUCCESSFUL,
+                    content = @Content(mediaType = APPLICATION_JSON_VALUE)),
+            @ApiResponse(responseCode = RESPONSE_CODE_BAD_REQUEST, description = RESPONSE_CODE_BAD_REQUEST_DESCRIPTION,
+                    content = @Content),
+            @ApiResponse(responseCode = RESPONSE_CODE_CONFLICT, description = RESPONSE_CODE_CONFLICT_DESCRIPTION,
+                    content = @Content)
+    })
+    @DeleteMapping("/remove-product/{productId}")
+    public ResponseEntity<String> removeProductFromShoppingCart(@PathVariable Long productId) {
+        shoppingCartHandler.removeProductFromShoppingCart(productId);
         return ResponseEntity.ok().build();
     }
 }

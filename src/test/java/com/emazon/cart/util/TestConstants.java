@@ -11,6 +11,7 @@ public class TestConstants {
     public static final Long INVALID_ID_PRODUCT = -1L;
     public static final Integer INVALID_AMOUNT = -1;
     public static final Integer INSUFFICIENT_STOCK = 0;
+    public static final Integer ONE=1;
 
     private TestConstants() {
     }

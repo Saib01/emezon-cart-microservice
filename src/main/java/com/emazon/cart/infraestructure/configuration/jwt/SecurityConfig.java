@@ -14,8 +14,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import static com.emazon.cart.infraestructure.util.InfraestructureRestControllerConstants.API_ADD_PRODUCT;
-import static com.emazon.cart.infraestructure.util.InfraestructureRestControllerConstants.CLIENT;
+import static com.emazon.cart.infraestructure.util.InfraestructureRestControllerConstants.*;
 
 @Configuration
 @EnableWebSecurity
@@ -32,7 +31,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(http -> {
                     http.requestMatchers(HttpMethod.POST, API_ADD_PRODUCT).hasAnyRole(CLIENT);
-                    http.requestMatchers(HttpMethod.DELETE, "/api/cart/*/remove-item/*").hasAnyRole(CLIENT);
+                    http.requestMatchers(HttpMethod.DELETE, API_ADD_REMOVE).hasAnyRole(CLIENT);
                     http.requestMatchers(HttpMethod.POST, "/api/purchase").hasAnyRole(CLIENT);
                     http.anyRequest().permitAll();
                 })
