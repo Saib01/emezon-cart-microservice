@@ -37,7 +37,7 @@ class ShoppingCartHandlerTest {
 
     @Test
     @DisplayName("Should save shoppingCart correctly")
-    void testSaveShoppingCart() {
+    void shouldSaveShoppingCart() {
         ShoppingCartRequest shoppingCartRequest = new ShoppingCartRequest(VALID_AMOUNT, VALID_ID_PRODUCT);
 
         when(shoppingCartRequestMapper.toShoppingCart(shoppingCartRequest)).thenReturn(shoppingCart);
@@ -48,5 +48,16 @@ class ShoppingCartHandlerTest {
 
         verify(shoppingCartServicePort).addProductToShoppingCart(shoppingCartRequestCaptor.capture());
         assertEquals(shoppingCartRequestCaptor.getValue(), shoppingCart);
+    }
+
+    @Test
+    @DisplayName("Should remove product from shopping cart successfully")
+    void shouldRemoveProductFromShoppingCartSuccessfully() {
+        shoppingCartHandler.removeProductFromShoppingCart(VALID_ID);
+
+        ArgumentCaptor<Long> productIdCapture = ArgumentCaptor.forClass(Long.class);
+
+        verify(shoppingCartServicePort).removeProductFromShoppingCart(productIdCapture.capture());
+        assertEquals(VALID_ID, productIdCapture.getValue());
     }
 }
