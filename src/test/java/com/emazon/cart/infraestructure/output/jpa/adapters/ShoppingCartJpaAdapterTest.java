@@ -1,9 +1,7 @@
 package com.emazon.cart.infraestructure.output.jpa.adapters;
 
-import com.emazon.cart.application.dtos.ProductDto;
 import com.emazon.cart.domain.model.ShoppingCart;
 import com.emazon.cart.infraestructure.output.jpa.entity.ShoppingCartEntity;
-import com.emazon.cart.infraestructure.output.jpa.feign.StockFeignClient;
 import com.emazon.cart.infraestructure.output.jpa.mapper.ShoppingCartEntityMapper;
 import com.emazon.cart.infraestructure.output.jpa.repository.IShoppingCartRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,15 +10,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Optional;
 
 import static com.emazon.cart.util.TestConstants.*;
-import static java.lang.Boolean.TRUE;
 import static org.hibernate.type.descriptor.java.IntegerJavaType.ZERO;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -29,9 +23,6 @@ class ShoppingCartJpaAdapterTest {
 
     @InjectMocks
     private ShoppingCartJpaAdapter shoppingCartJpaAdapter;
-
-    @Mock
-    private StockFeignClient stockFeignClient;
 
     @Mock
     private IShoppingCartRepository shoppingCartRepository;
@@ -68,27 +59,6 @@ class ShoppingCartJpaAdapterTest {
         verify(shoppingCartEntityMapper).toShoppingCart(shoppingCartEntity);
     }
 
-    @Test
-    @DisplayName("Should return amount of product by product ID")
-    void shouldReturnAmountByIdProduct() {
-        ProductDto productDto = new ProductDto();
-        productDto.setAmount(VALID_AMOUNT);
-        when(stockFeignClient.getProductById(VALID_ID_PRODUCT)).thenReturn(productDto);
-
-        Integer result = shoppingCartJpaAdapter.getAmountByIdProduct(VALID_ID_PRODUCT);
-
-        assertEquals(VALID_AMOUNT, result);
-    }
-
-    @Test
-    @DisplayName("Should validate max product per category")
-    void shouldValidateMaxProductPerCategory() {
-        when(stockFeignClient.validateMaxProductPerCategory(VALID_LIST_PRODUCTS_IDS)).thenReturn(TRUE);
-
-        boolean result = shoppingCartJpaAdapter.validateMaxProductPerCategory(VALID_LIST_PRODUCTS_IDS);
-
-        assertTrue(result);
-    }
 
     @Test
     @DisplayName("Should return list of product IDs for the user")
@@ -120,21 +90,5 @@ class ShoppingCartJpaAdapterTest {
         shoppingCartJpaAdapter.save(shoppingCart);
 
         verify(shoppingCartRepository).save(shoppingCartEntity);
-    }
-
-    @Test
-    @DisplayName("Should return the user ID from security context")
-    void shouldReturnUserIdFromSecurityContext() {
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getPrincipal()).thenReturn(VALID_ID.toString());
-
-        SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-
-        SecurityContextHolder.setContext(securityContext);
-
-        Long result = shoppingCartJpaAdapter.getUserId();
-
-        assertEquals(VALID_ID, result);
     }
 }

@@ -15,8 +15,4 @@ public class TestConstants {
 
     private TestConstants() {
     }
-
-    public static <T> T getNull() {
-        return null;
-    }
 }

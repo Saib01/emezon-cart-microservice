@@ -4,7 +4,7 @@ import com.emazon.cart.domain.exeption.AmountIsInvalidException;
 import com.emazon.cart.domain.exeption.InsufficientStockException;
 import com.emazon.cart.domain.exeption.MaxProductsPerCategoryException;
 import com.emazon.cart.domain.exeption.ProductIdIsInvalidException;
-import com.emazon.cart.infraestructure.exception.FeignProductNotFoundException;
+import com.emazon.cart.domain.exeption.ProductNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -17,7 +17,7 @@ import java.util.Map;
 
 @ControllerAdvice
 public class ControllerAdvisor {
-    private static final String MESSAGE = "Message";
+    private static final String MESSAGE = "Response";
 
 
     private ResponseEntity<Map<String, String>> buildResponse(HttpStatus status, String message) {
@@ -48,7 +48,7 @@ public class ControllerAdvisor {
     }
 
     @ExceptionHandler({
-            FeignProductNotFoundException.class
+            ProductNotFoundException.class
     })
     public ResponseEntity<Map<String, String>> handleNotFOUNDExceptions(RuntimeException ex) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());

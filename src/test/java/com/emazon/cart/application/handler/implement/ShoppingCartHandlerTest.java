@@ -32,7 +32,7 @@ class ShoppingCartHandlerTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        shoppingCart = new ShoppingCart(getNull(), getNull(), VALID_ID_PRODUCT, VALID_AMOUNT);
+        shoppingCart = new ShoppingCart(null, null, VALID_ID_PRODUCT, VALID_AMOUNT);
     }
 
     @Test

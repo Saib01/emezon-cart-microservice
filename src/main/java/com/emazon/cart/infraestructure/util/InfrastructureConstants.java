@@ -7,6 +7,7 @@ public class InfrastructureConstants {
     public static final String AUTHORITIES = "authorities";
     public static final String JWT_KEY_GENERATOR = "${security.jwt.key.private}";
     public static final String JWT_USER_GENERATOR = "${security.jwt.user.generator}";
+    public static final String RESTOCK_DAY="${domain.product.day.restock}";
 
     public static final String TEMPLATE_RESPONSE_ERROR = "{\"message\": \"%s\"}";
 
@@ -24,6 +25,8 @@ public class InfrastructureConstants {
     public static final String PRODUCT = "product";
     public static final String ACCESS_DENIED = "Access Denied: You do not have permission to access this resource.";
 
+    public static final String CREATED_DATE = "createdDate";
+    public static final String UPDATE_DATE = "updateDate";
     private InfrastructureConstants() {
     }
 }

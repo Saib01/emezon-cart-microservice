@@ -1,7 +1,7 @@
 package com.emazon.cart.infraestructure.exceptionhandler;
 
 
-import com.emazon.cart.infraestructure.exception.FeignProductNotFoundException;
+import com.emazon.cart.domain.exeption.ProductNotFoundException;
 import com.emazon.cart.infraestructure.exception.UnknownException;
 import feign.Response;
 import feign.codec.ErrorDecoder;
@@ -18,7 +18,7 @@ public class CustomErrorDecoder implements ErrorDecoder {
     @Override
     public Exception decode(String methodKey, Response response) {
         if (methodKey.toLowerCase().contains(PRODUCT.toLowerCase())) {
-            throw new FeignProductNotFoundException(PRODUCT_NOT_FOUND);
+            throw new ProductNotFoundException(PRODUCT_NOT_FOUND);
         }
         return new UnknownException(UNKNOWN_ERROR);
     }

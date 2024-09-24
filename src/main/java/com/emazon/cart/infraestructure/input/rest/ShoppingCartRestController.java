@@ -1,7 +1,9 @@
 package com.emazon.cart.infraestructure.input.rest;
 
+import com.emazon.cart.application.dtos.Response;
 import com.emazon.cart.application.dtos.ShoppingCartRequest;
 import com.emazon.cart.application.handler.IShoppingCartHandler;
+import com.emazon.cart.infraestructure.output.jpa.feign.StockFeignClient;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -9,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import static com.emazon.cart.infraestructure.util.InfraestructureRestControllerConstants.*;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
@@ -18,6 +21,7 @@ import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 public class ShoppingCartRestController {
 
     private final IShoppingCartHandler shoppingCartHandler;
+    private final StockFeignClient stockFeignClient;
 
     @Operation(summary = SUMMARY_ADD_PRODUCT)
     @ApiResponses(value = {
@@ -29,11 +33,11 @@ public class ShoppingCartRestController {
                     content = @Content)
     })
     @PostMapping("/add-product")
-    public ResponseEntity<String> addProductToShoppingCart(
+    public ResponseEntity<Response> addProductToShoppingCart(
             @RequestBody ShoppingCartRequest shoppingCartRequest) {
 
         shoppingCartHandler.addProductToShoppingCart(shoppingCartRequest);
-        return ResponseEntity.ok(RESPONSE_DESCRIPTION_ADD_SUCCESSFUL);
+        return ResponseEntity.ok(new Response(RESPONSE_DESCRIPTION_ADD_SUCCESSFUL));
     }
 
     @Operation(summary = SUMMARY_REMOVE_PRODUCT)
@@ -46,8 +50,9 @@ public class ShoppingCartRestController {
                     content = @Content)
     })
     @DeleteMapping("/remove-product/{productId}")
-    public ResponseEntity<String> removeProductFromShoppingCart(@PathVariable Long productId) {
+    public ResponseEntity<Response> removeProductFromShoppingCart(@PathVariable Long productId) {
         shoppingCartHandler.removeProductFromShoppingCart(productId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new Response(RESPONSE_DESCRIPTION_REMOVE_SUCCESSFUL));
     }
+
 }
