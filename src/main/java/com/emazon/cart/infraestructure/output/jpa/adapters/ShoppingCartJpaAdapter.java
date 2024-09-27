@@ -21,6 +21,7 @@ public class ShoppingCartJpaAdapter implements IShoppingCartPersistencePort {
     private final ShoppingCartEntityMapper shoppingCartEntityMapper;
     @Value(RESTOCK_DAY)
     private int restockDay;
+
     @Override
     public ShoppingCart findByIdUserAndIdProduct(Long idUser, Long idProduct) {
         return this.shoppingCartEntityMapper.toShoppingCart(
@@ -43,4 +44,12 @@ public class ShoppingCartJpaAdapter implements IShoppingCartPersistencePort {
                 this.shoppingCartEntityMapper.toShoppingCartEntity(shoppingCart)
         );
     }
+
+    @Override
+    public List<ShoppingCart> getShoppingCartListByIdProductInAndUserId(Long id, List<Long> idList) {
+        return this.shoppingCartEntityMapper.toShoppingCartList(
+                this.shoppingCartRepository.findByIdUserAndIdProductInAndAmountGreaterThan(id, idList, ZERO).orElse(List.of())
+        );
+    }
+
 }

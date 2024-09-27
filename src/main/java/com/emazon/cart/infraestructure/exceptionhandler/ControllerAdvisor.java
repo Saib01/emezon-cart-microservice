@@ -1,10 +1,6 @@
 package com.emazon.cart.infraestructure.exceptionhandler;
 
-import com.emazon.cart.domain.exeption.AmountIsInvalidException;
-import com.emazon.cart.domain.exeption.InsufficientStockException;
-import com.emazon.cart.domain.exeption.MaxProductsPerCategoryException;
-import com.emazon.cart.domain.exeption.ProductIdIsInvalidException;
-import com.emazon.cart.domain.exeption.ProductNotFoundException;
+import com.emazon.cart.domain.exeption.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -28,6 +24,9 @@ public class ControllerAdvisor {
     @ExceptionHandler({
             AmountIsInvalidException.class,
             ProductIdIsInvalidException.class,
+            ShoppingCartPageSortDirectionIsInvalidException.class,
+            ShoppingCartPageNumberIsInvalidException.class,
+            ShoppingCartPageSizeIsInvalidException.class
     })
     public ResponseEntity<Map<String, String>> handleBadRequestExceptions(RuntimeException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
@@ -48,11 +47,13 @@ public class ControllerAdvisor {
     }
 
     @ExceptionHandler({
-            ProductNotFoundException.class
+            ProductNotFoundException.class,
+            ProductFilterNotFoundException.class
     })
     public ResponseEntity<Map<String, String>> handleNotFOUNDExceptions(RuntimeException ex) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
+
     @ExceptionHandler({
             ConnectException.class
     })

@@ -8,6 +8,10 @@ public interface IShoppingCartPersistencePort {
     ShoppingCart findByIdUserAndIdProduct(Long idUser, Long idProduct);
 
     void save(ShoppingCart shoppingCart);
+
     List<Long> getProductIds(Long id);
+
     int getRestockDay();
+
+    List<ShoppingCart> getShoppingCartListByIdProductInAndUserId(Long id, List<Long> idList);
 }
