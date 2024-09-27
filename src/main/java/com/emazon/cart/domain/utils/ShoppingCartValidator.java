@@ -5,6 +5,7 @@ import com.emazon.cart.domain.exeption.InsufficientStockException;
 import com.emazon.cart.domain.exeption.MaxProductsPerCategoryException;
 import com.emazon.cart.domain.exeption.ProductIdIsInvalidException;
 import com.emazon.cart.domain.model.ShoppingCart;
+import com.emazon.cart.domain.spi.IStockPersistencePort;
 import com.emazon.cart.domain.spi.IShoppingCartPersistencePort;
 
 import java.time.LocalDate;
@@ -13,7 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 import static com.emazon.cart.domain.exeption.ExceptionResponse.*;
 import static java.lang.String.format;
@@ -24,38 +25,37 @@ public class ShoppingCartValidator {
 
 
     private static final String MONTH_NAME_FORMAT = "MMMM";
-    private static final String TEMPLATE_NO_STOCK_ERROR = "The restock is on the 15th of %s.";
+    private static final String TEMPLATE_NO_STOCK_ERROR = "The restock is on the %sth of %s.";
     private static final int MAX_ARTICLES_PER_CATEGORY = 3;
-    private static final int RESTOCK_DATE = 15;
     private static final int ONE = 1;
     private static final int TWO = 2;
     private static final String[] TYPE_EXCEPTIONS = {"InvalidIdProduct", "InvalidAmount", "InsufficientAmount"};
-    private static final Map<String, Supplier<RuntimeException>> EXCEPTION_MAP = new HashMap<>();
+    private static final Map<String, Function<Integer, RuntimeException>> EXCEPTION_MAP = new HashMap<>();
 
     static {
-        EXCEPTION_MAP.put(TYPE_EXCEPTIONS[ZERO], () -> new ProductIdIsInvalidException(PRODUCT_ID_INVALID));
-        EXCEPTION_MAP.put(TYPE_EXCEPTIONS[ONE], () -> new AmountIsInvalidException(AMOUNT_INVALID));
-        EXCEPTION_MAP.put(TYPE_EXCEPTIONS[TWO], () -> new InsufficientStockException(messageForExceptionInsufficientStock()));
+        EXCEPTION_MAP.put(TYPE_EXCEPTIONS[ZERO], noMessage -> new ProductIdIsInvalidException(PRODUCT_ID_INVALID));
+        EXCEPTION_MAP.put(TYPE_EXCEPTIONS[ONE], noMessage -> new AmountIsInvalidException(AMOUNT_INVALID));
+        EXCEPTION_MAP.put(TYPE_EXCEPTIONS[TWO], day -> new InsufficientStockException(messageForExceptionInsufficientStock(day)));
     }
 
     private ShoppingCartValidator() {
     }
 
-    public static void addProductToShoppingCart(ShoppingCart shoppingCart, IShoppingCartPersistencePort shoppingCartPersistencePort) {
+    public static void addProductToShoppingCart(ShoppingCart shoppingCart, IShoppingCartPersistencePort shoppingCartPersistencePort, IStockPersistencePort productPersistencePort) {
         validateIdProduct(shoppingCart.getIdProduct());
-        validateAmount(shoppingCart,shoppingCartPersistencePort);
-        validateMaxProductPerCategory(shoppingCart, shoppingCartPersistencePort);
+        validateAmount(shoppingCart,productPersistencePort,shoppingCartPersistencePort);
+        validateMaxProductPerCategory(shoppingCart, shoppingCartPersistencePort,productPersistencePort);
     }
     public static void validateIdProduct(Long id){
-        validateGreaterThanOrEqual(id, TYPE_EXCEPTIONS[ZERO], ONE);
+        validateGreaterThanOrEqual(id, TYPE_EXCEPTIONS[ZERO]);
     }
-    private static void validateAmount(ShoppingCart shoppingCart,IShoppingCartPersistencePort shoppingCartPersistencePort){
-        validateGreaterThanOrEqual(shoppingCart.getAmount().longValue(), TYPE_EXCEPTIONS[ONE], ONE);
-        validateGreaterThanOrEqual(shoppingCartPersistencePort.getAmountByIdProduct(shoppingCart.getIdProduct()).longValue(), TYPE_EXCEPTIONS[TWO],
-                shoppingCart.getAmount()
+    private static void validateAmount(ShoppingCart shoppingCart, IStockPersistencePort productPersistencePort, IShoppingCartPersistencePort shoppingCartPersistencePort){
+        validateGreaterThanOrEqual(shoppingCart.getAmount(), TYPE_EXCEPTIONS[ONE]);
+        validateGreaterThanOrEqual(productPersistencePort.getAmountByIdProduct(shoppingCart.getIdProduct()), TYPE_EXCEPTIONS[TWO],
+                shoppingCart.getAmount(),shoppingCartPersistencePort.getRestockDay()
         );
     }
-    private static void validateMaxProductPerCategory(ShoppingCart shoppingCart, IShoppingCartPersistencePort shoppingCartPersistencePort) {
+    private static void validateMaxProductPerCategory(ShoppingCart shoppingCart, IShoppingCartPersistencePort shoppingCartPersistencePort, IStockPersistencePort productPersistencePort) {
 
         ShoppingCart shoppingCartExist = shoppingCartPersistencePort.findByIdUserAndIdProduct(shoppingCart.getIdUser(), shoppingCart.getIdProduct());
         if (shoppingCartExist != null) {
@@ -64,27 +64,29 @@ public class ShoppingCartValidator {
 
         List<Long> productIds = new ArrayList<>(shoppingCartPersistencePort.getProductIds(shoppingCart.getIdUser()));
         productIds.add(shoppingCart.getIdProduct());
-        if (productIds.size() > MAX_ARTICLES_PER_CATEGORY && !shoppingCartPersistencePort.validateMaxProductPerCategory(productIds)) {
+        if (productIds.size() > MAX_ARTICLES_PER_CATEGORY && !productPersistencePort.validateMaxProductPerCategory(productIds)) {
             throw new MaxProductsPerCategoryException(OUT_OF_STOCK);
         }
     }
-
-    private static void validateGreaterThanOrEqual(Long number, String typeException, int threshold) {
-        if (number < threshold) {
-            throw EXCEPTION_MAP.get(typeException).get();
+    private static <T extends Number> void validateGreaterThanOrEqual(T number, String typeException) {
+        validateGreaterThanOrEqual(number,typeException,ONE, ZERO);
+    }
+    private static <T extends Number> void validateGreaterThanOrEqual(T number, String typeException, int threshold,int day) {
+        if (number.intValue() < threshold) {
+            throw EXCEPTION_MAP.get(typeException).apply(day);
         }
     }
 
-    private static String messageForExceptionInsufficientStock() {
+    private static String messageForExceptionInsufficientStock(int restockDate) {
         LocalDate today = LocalDate.now();
         DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern(MONTH_NAME_FORMAT);
         String monthName;
-        if (today.isAfter(today.withDayOfMonth(RESTOCK_DATE))) {
-            LocalDate nextMonth = today.plusMonths(ONE).withDayOfMonth(RESTOCK_DATE);
+        if (today.isAfter(today.withDayOfMonth(restockDate))) {
+            LocalDate nextMonth = today.plusMonths(ONE).withDayOfMonth(restockDate);
             monthName = nextMonth.format(monthFormatter);
         } else {
             monthName = today.format(monthFormatter);
         }
-        return format(TEMPLATE_NO_STOCK_ERROR, monthName);
+        return format(TEMPLATE_NO_STOCK_ERROR,restockDate, monthName);
     }
 }
