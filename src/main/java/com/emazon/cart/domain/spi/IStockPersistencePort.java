@@ -10,5 +10,5 @@ public interface IStockPersistencePort {
 
     boolean validateMaxProductPerCategory(List<Long> listIdsProducts);
 
-    PageShopping<Product> getPaginatedProductsInShoppingCart(List<Long> listIdsProducts, String categoryName, String brandName, String sortDirection, int page, int size);
+    PageShopping<Product> getPaginatedProductsInShoppingCart(List<Long> listIdsProducts, String brandName, String categoryName, String sortDirection, int page, int size);
 }

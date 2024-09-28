@@ -16,11 +16,10 @@ public class PageShopping<T> {
     private boolean empty;
     private Double total;
 
-    public PageShopping(List<T> content, Integer totalElements, Integer totalPages, Double total, boolean first, boolean last, Integer pageSize) {
+    public PageShopping(List<T> content, Integer totalElements, Integer totalPages, boolean first, boolean last, Integer pageSize) {
         this.content = content;
         this.totalElements = totalElements;
         this.totalPages = totalPages;
-        this.total = total;
         this.pageSize = pageSize;
         this.first = first;
         this.last = last;

@@ -46,9 +46,9 @@ public class ShoppingCartJpaAdapter implements IShoppingCartPersistencePort {
     }
 
     @Override
-    public List<ShoppingCart> getShoppingCartListByIdProductInAndUserId(Long id, List<Long> idList) {
+    public List<ShoppingCart> getShoppingCartListByIdProductInAndUserId(Long idUser, List<Long> idList) {
         return this.shoppingCartEntityMapper.toShoppingCartList(
-                this.shoppingCartRepository.findByIdUserAndIdProductInAndAmountGreaterThan(id, idList, ZERO).orElse(List.of())
+                this.shoppingCartRepository.findByIdUserAndIdProductInAndAmountGreaterThan(idUser, idList, ZERO).orElse(List.of())
         );
     }
 

@@ -25,7 +25,7 @@ public class StockFeignAdapter implements IStockPersistencePort {
     }
 
     @Override
-    public PageShopping<Product> getPaginatedProductsInShoppingCart(List<Long> listIdsProducts, String categoryName, String brandName, String sortDirection, int page, int size) {
+    public PageShopping<Product> getPaginatedProductsInShoppingCart(List<Long> listIdsProducts, String brandName, String categoryName, String sortDirection, int page, int size) {
         return this.stockFeignClient.getPaginatedProductsInShoppingCart(
                 new ShoppingCartListRequest(listIdsProducts, categoryName, brandName),
                 sortDirection,

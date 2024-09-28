@@ -10,17 +10,19 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import static com.emazon.cart.util.TestConstants.VALID_ID;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class AuthenticationAdapterTest {
     @InjectMocks
     private AuthenticationAdapter authenticationAdapter;
+
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
     }
+
     @Test
     @DisplayName("Should return the user ID from security context")
     void shouldReturnUserIdFromSecurityContext() {

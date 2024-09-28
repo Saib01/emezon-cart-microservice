@@ -32,6 +32,12 @@ public class ShoppingCartUseCase implements IShoppingCartServicePort {
         this.authenticationPersistencePort = authenticationPersistencePort;
     }
 
+    private static PageShopping<Product> getResponsePageShoppingEmpty() {
+        return new PageShopping<>(
+                List.of(), ZERO, ZERO, true, true, ZERO
+        );
+    }
+
     @Override
     public void addProductToShoppingCart(ShoppingCart shoppingCart) {
         shoppingCart.setIdUser(this.authenticationPersistencePort.getUserId());
@@ -65,22 +71,24 @@ public class ShoppingCartUseCase implements IShoppingCartServicePort {
 
         productIds = productResponsePageShopping.getContent().stream().map(Product::getId).toList();
 
-        productResponsePageShopping.setTotal(getTotal(productResponsePageShopping,
-                messageForInsufficientStock(shoppingCartPersistencePort.getRestockDay()),
-                userId,productIds));
+        productResponsePageShopping.setTotal(
+                getTotal(productResponsePageShopping,
+                        userId, productIds)
+        );
 
         return productResponsePageShopping;
     }
 
-    private Double getTotal(PageShopping<Product> productPageShopping, String restockDay, Long userId, List<Long> productIds) {
-        AtomicReference<Double> total= new AtomicReference<>(ZERO.doubleValue());
+    private Double getTotal(PageShopping<Product> productPageShopping, Long userId, List<Long> productIds) {
+        String restockDay = messageForInsufficientStock(shoppingCartPersistencePort.getRestockDay());
+        AtomicReference<Double> total = new AtomicReference<>(ZERO.doubleValue());
         Map<Long, Integer> unitsInCart = this.shoppingCartPersistencePort.getShoppingCartListByIdProductInAndUserId(userId, productIds).stream()
                 .collect(Collectors.toMap(ShoppingCart::getIdProduct, ShoppingCart::getAmount));
         productPageShopping.getContent().forEach(product -> {
             product.setUnitsInCart(unitsInCart.get(product.getId()));
             if (product.getUnitsInCart() > product.getAmount()) {
                 product.setRestockDate(restockDay);
-            }else{
+            } else {
                 total.updateAndGet(v -> v + product.getPrice() * product.getAmount());
             }
         });
@@ -91,18 +99,12 @@ public class ShoppingCartUseCase implements IShoppingCartServicePort {
             String brandName, String categoryName, String sortDirection, int page, int size, List<Long> productIds
     ) {
         try {
-            return productIds.isEmpty()?
+            return productIds.isEmpty() ?
                     getResponsePageShoppingEmpty()
-                    :this.productPersistencePort
-                            .getPaginatedProductsInShoppingCart(productIds, categoryName, brandName, sortDirection, page, size);
+                    : this.productPersistencePort
+                    .getPaginatedProductsInShoppingCart(productIds, brandName, categoryName, sortDirection, page, size);
         } catch (RuntimeException e) {
             return getResponsePageShoppingEmpty();
         }
-    }
-
-    private static PageShopping<Product> getResponsePageShoppingEmpty() {
-        return new PageShopping<>(
-                List.of(),ZERO,ZERO,ZERO.doubleValue(),true,true,ZERO
-        );
     }
 }

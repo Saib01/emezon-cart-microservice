@@ -11,13 +11,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static com.emazon.cart.util.TestConstants.*;
 import static org.hibernate.type.descriptor.java.IntegerJavaType.ZERO;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class ShoppingCartJpaAdapterTest {
 
@@ -90,5 +93,19 @@ class ShoppingCartJpaAdapterTest {
         shoppingCartJpaAdapter.save(shoppingCart);
 
         verify(shoppingCartRepository).save(shoppingCartEntity);
+    }
+
+    @Test
+    @DisplayName("Should  return paginated products in shopping cart")
+    void shouldGetPaginatedProductsInShoppingCart() {
+        List<ShoppingCart> shoppingCartList = Arrays.asList(new ShoppingCart(VALID_ID, VALID_ID, VALID_ID_PRODUCT, VALID_AMOUNT), new ShoppingCart(VALID_ID, VALID_ID, VALID_ID_SECOND, VALID_AMOUNT_RESTOCK));
+        List<ShoppingCartEntity> shoppingCartListEntity = Arrays.asList(new ShoppingCartEntity(VALID_ID, VALID_ID, VALID_ID_PRODUCT, VALID_AMOUNT, null, null), new ShoppingCartEntity(VALID_ID, VALID_ID, VALID_ID_SECOND, VALID_AMOUNT_RESTOCK, null, null));
+
+        when(this.shoppingCartRepository.findByIdUserAndIdProductInAndAmountGreaterThan(VALID_ID, VALID_LIST_PRODUCT_ID, ZERO))
+                .thenReturn(Optional.of(shoppingCartListEntity));
+        when(this.shoppingCartEntityMapper.toShoppingCartList(shoppingCartListEntity)).thenReturn(shoppingCartList);
+
+        List<ShoppingCart> result = this.shoppingCartJpaAdapter.getShoppingCartListByIdProductInAndUserId(VALID_ID, VALID_LIST_PRODUCT_ID);
+        assertEquals(shoppingCartList, result);
     }
 }
