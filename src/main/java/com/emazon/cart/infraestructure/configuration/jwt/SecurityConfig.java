@@ -1,6 +1,7 @@
 package com.emazon.cart.infraestructure.configuration.jwt;
 
 import com.emazon.cart.infraestructure.configuration.jwt.jwt.JwtAuthenticationFilter;
+import com.emazon.cart.infraestructure.configuration.jwt.jwt.JwtRequestInterceptor;
 import com.emazon.cart.infraestructure.configuration.jwt.jwt.JwtUtils;
 import com.emazon.cart.infraestructure.exceptionhandler.CustomAccessDeniedHandler;
 import com.emazon.cart.infraestructure.exceptionhandler.JwtAuthenticationEntryPoint;
@@ -23,6 +24,7 @@ public class SecurityConfig {
     private final JwtUtils jwtUtils;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtRequestInterceptor jwtRequestInterceptor;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -32,10 +34,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(http -> {
                     http.requestMatchers(HttpMethod.POST, API_ADD_PRODUCT).hasAnyRole(CLIENT);
                     http.requestMatchers(HttpMethod.DELETE, API_ADD_REMOVE).hasAnyRole(CLIENT);
+                    http.requestMatchers(HttpMethod.GET, "/api/shopping-cart").hasAnyRole(CLIENT);
                     http.requestMatchers(HttpMethod.POST, "/api/purchase").hasAnyRole(CLIENT);
-                    http.anyRequest().permitAll();
+                    http.anyRequest().authenticated();
                 })
-                .addFilterBefore(new JwtAuthenticationFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtAuthenticationFilter(jwtUtils, jwtRequestInterceptor), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .accessDeniedHandler(customAccessDeniedHandler)
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint))

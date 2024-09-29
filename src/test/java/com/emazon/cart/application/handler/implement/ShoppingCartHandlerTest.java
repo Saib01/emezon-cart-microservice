@@ -3,7 +3,7 @@ package com.emazon.cart.application.handler.implement;
 import com.emazon.cart.application.dtos.ShoppingCartRequest;
 import com.emazon.cart.application.mapper.ShoppingCartRequestMapper;
 import com.emazon.cart.domain.api.IShoppingCartServicePort;
-import com.emazon.cart.domain.model.ShoppingCart;
+import com.emazon.cart.domain.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,6 +12,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static com.emazon.cart.domain.utils.DomainConstants.ASC;
 import static com.emazon.cart.util.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
@@ -59,5 +64,22 @@ class ShoppingCartHandlerTest {
 
         verify(shoppingCartServicePort).removeProductFromShoppingCart(productIdCapture.capture());
         assertEquals(VALID_ID, productIdCapture.getValue());
+    }
+
+    @Test
+    @DisplayName("Should  return paginated products in shopping cart")
+    void shouldGetPaginatedProductsInShoppingCart() {
+        PageShopping<Product> productPageShopping = new PageShopping<>(
+                List.of(new Product(VALID_ID_PRODUCT, VALID_PRODUCT_NAME, VALID_AMOUNT, null, VALID_PRICE,
+                        new Brand(VALID_ID, VALID_BRAND_NAME),
+                        new ArrayList<>(Collections.singletonList(new Category(VALID_ID, VALID_CATEGORY_NAME))))
+                ), VALID_TOTAL_ELEMENTS, VALID_TOTAL_PAGES, true, true, VALID_SIZE
+        );
+
+        when(shoppingCartServicePort.getPaginatedProductsInShoppingCart(BRAND_FILTER, CATEGORY_FILTER, ASC, VALID_PAGE, VALID_SIZE))
+                .thenReturn(productPageShopping);
+
+        PageShopping<Product> result = shoppingCartServicePort.getPaginatedProductsInShoppingCart(BRAND_FILTER, CATEGORY_FILTER, ASC, VALID_PAGE, VALID_SIZE);
+        assertEquals(productPageShopping, result);
     }
 }

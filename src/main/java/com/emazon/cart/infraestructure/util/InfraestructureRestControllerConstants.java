@@ -5,6 +5,8 @@ public class InfraestructureRestControllerConstants {
     public static final String RESPONSE_CODE_SUCCESS = "200";
     public static final String RESPONSE_CODE_BAD_REQUEST = "400";
     public static final String RESPONSE_CODE_CONFLICT = "409";
+    public static final String BRAND_NAME = "brandName";
+    public static final String CATEGORY_NAME = "categoryName";
     public static final String RESPONSE_CODE_BAD_REQUEST_DESCRIPTION = "Invalid request data";
     public static final String RESPONSE_CODE_CONFLICT_DESCRIPTION = "Internal server error";
     public static final String RESPONSE_DESCRIPTION_ADD_SUCCESSFUL = "Product added successfully";
@@ -18,6 +20,13 @@ public class InfraestructureRestControllerConstants {
     public static final String REMOVE_PRODUCT = "/remove-product/*";
     public static final String API_ADD_PRODUCT = String.format("%s%s%s", API_BASE, SHOPPING_CART, ADD_PRODUCT);
     public static final String API_ADD_REMOVE = String.format("%s%s%s", API_BASE, SHOPPING_CART, REMOVE_PRODUCT);
+
+
+    public static final String SORT_DIRECTION = "sortDirection";
+    public static final String PAGE = "page";
+    public static final String SIZE = "size";
+    public static final String DEFAULT_PAGE_NUMBER = "0";
+    public static final String DEFAULT_PAGE_SIZE = "10";
 
     private InfraestructureRestControllerConstants() {
 

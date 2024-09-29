@@ -10,4 +10,6 @@ public interface IShoppingCartRepository extends JpaRepository<ShoppingCartEntit
     Optional<List<ShoppingCartEntity>> findByIdUserAndAmountGreaterThan(Long idUser, int amount);
 
     Optional<ShoppingCartEntity> findByIdUserAndIdProduct(Long userId, Long productId);
+
+    Optional<List<ShoppingCartEntity>> findByIdUserAndIdProductInAndAmountGreaterThan(Long idUser, List<Long> idList, int amount);
 }

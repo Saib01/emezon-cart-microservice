@@ -27,6 +27,7 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
+    private final JwtRequestInterceptor jwtRequestInterceptor;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -47,7 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Authentication authentication = new UsernamePasswordAuthenticationToken(username, null, authorities);
                 context.setAuthentication(authentication);
                 SecurityContextHolder.setContext(context);
-
+                jwtRequestInterceptor.setJwtToken(jwtToken);
             }
         }
         filterChain.doFilter(request, response);
