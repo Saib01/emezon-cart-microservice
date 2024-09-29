@@ -22,4 +22,6 @@ public interface ShoppingCartEntityMapper {
     ShoppingCartEntity toShoppingCartEntity(ShoppingCart shoppingCart);
 
     List<ShoppingCart> toShoppingCartList(List<ShoppingCartEntity> shoppingCartEntitiesList);
+
+    List<ShoppingCartEntity> toShoppingCartarEntityList(List<ShoppingCart> shoppingCartList);
 }

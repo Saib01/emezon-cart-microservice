@@ -10,12 +10,12 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 import static com.emazon.cart.infraestructure.util.InfrastructureConstants.TEMPLATE_RESPONSE_ERROR;
-import static com.emazon.cart.infraestructure.util.InfrastructureConstants.UNAUTHORIZED_MESSAGE;
 import static java.lang.String.format;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
+    public static final String UNAUTHORIZED_MESSAGE = "Unauthorized: You need to provide valid credentials to access this resource.";
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)

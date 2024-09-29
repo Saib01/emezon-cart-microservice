@@ -9,6 +9,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import static com.emazon.cart.domain.exeption.ExceptionResponse.JWT_INVALID;
 import static com.emazon.cart.infraestructure.util.InfrastructureConstants.JWT_KEY_GENERATOR;
 import static com.emazon.cart.infraestructure.util.InfrastructureConstants.JWT_USER_GENERATOR;
 
@@ -27,7 +28,7 @@ public class JwtUtils {
                     .build();
             return verifier.verify(token);
         } catch (JWTVerificationException exception) {
-            return null;
+            throw new JWTVerificationException(JWT_INVALID.getMessage());
         }
     }
 

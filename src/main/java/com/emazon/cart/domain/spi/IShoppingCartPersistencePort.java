@@ -9,9 +9,15 @@ public interface IShoppingCartPersistencePort {
 
     void save(ShoppingCart shoppingCart);
 
+    List<ShoppingCart> findByIdUserAndIdProductIn(Long idUser, List<Long> idList);
+
     List<Long> getProductIds(Long id);
 
     int getRestockDay();
 
     List<ShoppingCart> getShoppingCartListByIdProductInAndUserId(Long id, List<Long> idList);
+
+    void saveAll(List<ShoppingCart> shoppingCartList);
+
+    Integer countByUserId(Long userId);
 }

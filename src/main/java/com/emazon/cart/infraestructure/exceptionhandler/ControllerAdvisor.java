@@ -26,14 +26,16 @@ public class ControllerAdvisor {
             ProductIdIsInvalidException.class,
             ShoppingCartPageSortDirectionIsInvalidException.class,
             ShoppingCartPageNumberIsInvalidException.class,
-            ShoppingCartPageSizeIsInvalidException.class
+            ShoppingCartPageSizeIsInvalidException.class,
+            ShoppingCartIdIsInvalidException.class
     })
     public ResponseEntity<Map<String, String>> handleBadRequestExceptions(RuntimeException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler({
-            MaxProductsPerCategoryException.class
+            MaxProductsPerCategoryException.class,
+            DuplicateShoppingCartIdException.class
     })
     public ResponseEntity<Map<String, String>> handleConflictExceptions(RuntimeException ex) {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
@@ -48,7 +50,8 @@ public class ControllerAdvisor {
 
     @ExceptionHandler({
             ProductNotFoundException.class,
-            ProductFilterNotFoundException.class
+            ProductFilterNotFoundException.class,
+            ShoppingCartNotFoundException.class
     })
     public ResponseEntity<Map<String, String>> handleNotFOUNDExceptions(RuntimeException ex) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
