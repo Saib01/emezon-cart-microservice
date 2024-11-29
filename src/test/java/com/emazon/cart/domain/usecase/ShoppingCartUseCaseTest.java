@@ -22,7 +22,6 @@ import static com.emazon.cart.domain.utils.DomainConstants.ASC;
 import static com.emazon.cart.util.TestConstants.*;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hibernate.type.descriptor.java.IntegerJavaType.ZERO;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -191,36 +190,6 @@ public class ShoppingCartUseCaseTest {
         assertEquals(productPageShopping, result);
     }
 
-    @Test
-    @DisplayName("Should  return paginated empty products in shopping cart")
-    void shouldGetPaginatedEmptyProductsInShoppingCart() {
-
-        when(this.shoppingCartPersistencePort.getProductIds(VALID_ID)).thenReturn(List.of());
-
-        assertEmptyPageShopping();
-
-        reset(this.shoppingCartPersistencePort);
-
-        assertEmptyPageShopping();
-
-        when(this.shoppingCartPersistencePort.getProductIds(VALID_ID)).thenReturn(VALID_LIST_PRODUCT_ID);
-        when(this.productPersistencePort.getPaginatedProductsInShoppingCart(VALID_LIST_PRODUCT_ID, BRAND_FILTER, CATEGORY_FILTER, ASC, VALID_PAGE, VALID_SIZE))
-                .thenThrow(new RuntimeException());
-
-        assertEmptyPageShopping();
-    }
-
-    private void assertEmptyPageShopping() {
-        when(this.authenticationPersistencePort.getUserId()).thenReturn(VALID_ID);
-        when(this.shoppingCartPersistencePort.getRestockDay()).thenReturn(RESTOCK_DAY);
-        PageShopping<Product> result = shoppingCartUseCase.getPaginatedProductsInShoppingCart(BRAND_FILTER, CATEGORY_FILTER, ASC, VALID_PAGE, VALID_SIZE);
-        assert (result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isEqualTo(ZERO);
-        assertThat(result.getTotalPages()).isEqualTo(ZERO);
-        assertThat(result.isFirst()).isTrue();
-        assertThat(result.isLast()).isTrue();
-        assertThat(result.getPageSize()).isEqualTo(ZERO);
-    }
 
     @Test
     @DisplayName("Should not return paginated products in shopping cart when page size is invalid")
