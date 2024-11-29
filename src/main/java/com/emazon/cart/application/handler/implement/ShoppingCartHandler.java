@@ -6,9 +6,12 @@ import com.emazon.cart.application.mapper.ShoppingCartRequestMapper;
 import com.emazon.cart.domain.api.IShoppingCartServicePort;
 import com.emazon.cart.domain.model.PageShopping;
 import com.emazon.cart.domain.model.Product;
+import com.emazon.cart.domain.model.ShoppingCart;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -32,5 +35,25 @@ public class ShoppingCartHandler implements IShoppingCartHandler {
     @Override
     public PageShopping<Product> getPaginatedProductsInShoppingCart(String brandName, String categoryName, String sortDirection, int page, int size) {
         return shoppingCartServicePort.getPaginatedProductsInShoppingCart(brandName, categoryName, sortDirection, page, size);
+    }
+
+    @Override
+    public void removeProductListFromShoppingCart(List<Long> productIdList) {
+        shoppingCartServicePort.removeProductListFromShoppingCart(productIdList);
+    }
+
+    @Override
+    public List<ShoppingCart> getListShoppingCartInListIdProduct(List<Long> listProductIds) {
+        return shoppingCartServicePort.getListShoppingCartInListIdProduct(listProductIds);
+    }
+
+    @Override
+    public void restoreShoppingCartFromShoppingCartList(List<ShoppingCart> shoppingCartList) {
+        shoppingCartServicePort.restoreShoppingCartFromShoppingCartList(shoppingCartList);
+    }
+
+    @Override
+    public Integer countByUserId() {
+        return shoppingCartServicePort.countByUserId();
     }
 }

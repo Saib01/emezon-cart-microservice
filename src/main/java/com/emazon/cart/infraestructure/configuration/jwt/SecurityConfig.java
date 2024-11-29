@@ -15,12 +15,14 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import static com.emazon.cart.infraestructure.util.InfraestructureRestControllerConstants.*;
+import static com.emazon.cart.infraestructure.util.InfraestructureRestControllerConstants.CLIENT;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+    private static final String API_SHOPPING_CART="api/shopping-cart/**";
+
     private final JwtUtils jwtUtils;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
@@ -32,11 +34,11 @@ public class SecurityConfig {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(http -> {
-                    http.requestMatchers(HttpMethod.POST, API_ADD_PRODUCT).hasAnyRole(CLIENT);
-                    http.requestMatchers(HttpMethod.DELETE, API_ADD_REMOVE).hasAnyRole(CLIENT);
-                    http.requestMatchers(HttpMethod.GET, "/api/shopping-cart").hasAnyRole(CLIENT);
-                    http.requestMatchers(HttpMethod.POST, "/api/purchase").hasAnyRole(CLIENT);
-                    http.anyRequest().authenticated();
+                    http.requestMatchers(HttpMethod.GET,API_SHOPPING_CART).hasRole(CLIENT);
+                    http.requestMatchers(HttpMethod.POST,API_SHOPPING_CART).hasRole(CLIENT);
+                    http.requestMatchers(HttpMethod.DELETE,API_SHOPPING_CART).hasRole(CLIENT);
+                    http.requestMatchers(HttpMethod.PUT,API_SHOPPING_CART).hasRole(CLIENT);
+                    http.anyRequest().permitAll();
                 })
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtils, jwtRequestInterceptor), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exceptionHandling -> exceptionHandling

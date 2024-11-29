@@ -22,10 +22,8 @@ import static com.emazon.cart.domain.utils.DomainConstants.ASC;
 import static com.emazon.cart.util.TestConstants.*;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hibernate.type.descriptor.java.IntegerJavaType.ZERO;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class ShoppingCartUseCaseTest {
@@ -192,36 +190,6 @@ public class ShoppingCartUseCaseTest {
         assertEquals(productPageShopping, result);
     }
 
-    @Test
-    @DisplayName("Should  return paginated empty products in shopping cart")
-    void shouldGetPaginatedEmptyProductsInShoppingCart() {
-
-        when(this.shoppingCartPersistencePort.getProductIds(VALID_ID)).thenReturn(List.of());
-
-        assertEmptyPageShopping();
-
-        reset(this.shoppingCartPersistencePort);
-
-        assertEmptyPageShopping();
-
-        when(this.shoppingCartPersistencePort.getProductIds(VALID_ID)).thenReturn(VALID_LIST_PRODUCT_ID);
-        when(this.productPersistencePort.getPaginatedProductsInShoppingCart(VALID_LIST_PRODUCT_ID, BRAND_FILTER, CATEGORY_FILTER, ASC, VALID_PAGE, VALID_SIZE))
-                .thenThrow(new RuntimeException());
-
-        assertEmptyPageShopping();
-    }
-
-    private void assertEmptyPageShopping() {
-        when(this.authenticationPersistencePort.getUserId()).thenReturn(VALID_ID);
-        when(this.shoppingCartPersistencePort.getRestockDay()).thenReturn(RESTOCK_DAY);
-        PageShopping<Product> result = shoppingCartUseCase.getPaginatedProductsInShoppingCart(BRAND_FILTER, CATEGORY_FILTER, ASC, VALID_PAGE, VALID_SIZE);
-        assert (result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isEqualTo(ZERO);
-        assertThat(result.getTotalPages()).isEqualTo(ZERO);
-        assertThat(result.isFirst()).isTrue();
-        assertThat(result.isLast()).isTrue();
-        assertThat(result.getPageSize()).isEqualTo(ZERO);
-    }
 
     @Test
     @DisplayName("Should not return paginated products in shopping cart when page size is invalid")
@@ -244,12 +212,54 @@ public class ShoppingCartUseCaseTest {
                 () -> shoppingCartUseCase.getPaginatedProductsInShoppingCart(BRAND_FILTER, CATEGORY_FILTER, INVALID_SORT_DIRECTION, VALID_PAGE, VALID_SIZE)
         );
     }
+    @Test
+    @DisplayName("Should get the total of the items in the cart")
+    void shouldGetTheTotalOfProducts(){
+        when(this.authenticationPersistencePort.getUserId()).thenReturn(VALID_ID);
+        when(this.shoppingCartPersistencePort.countByUserId(VALID_ID)).thenReturn(VALID_TOTAL_ELEMENTS);
+
+        Integer result=this.shoppingCartUseCase.countByUserId();
+
+        assertEquals(VALID_TOTAL_ELEMENTS,result);
+    }
 
     @Test
-    @DisplayName("Should not return paginated products in shopping cart when FILTER is invalid")
-    void shouldNotGetPaginatedProductsInShoppingCartWhenFilterIsInvalid() {
-        assertThrows(ProductFilterNotFoundException.class,
-                () -> shoppingCartUseCase.getPaginatedProductsInShoppingCart(null, null, ASC, VALID_PAGE, VALID_SIZE)
+    @DisplayName("Should remove the products from the cart")
+    void shouldRemoveTheProductsFromTheCart(){
+        List<Long> productIdList= List.of(VALID_ID);
+        List<ShoppingCart> shoppingCartList = Arrays.asList(new ShoppingCart(VALID_ID, VALID_ID, VALID_ID_PRODUCT, VALID_AMOUNT));
+        when(this.authenticationPersistencePort.getUserId()).thenReturn(VALID_ID);
+        when(this.shoppingCartPersistencePort.getShoppingCartListByIdProductInAndUserId(VALID_ID,productIdList))
+                .thenReturn(shoppingCartList );
+
+        this.shoppingCartUseCase.removeProductListFromShoppingCart(productIdList);
+
+        ArgumentCaptor<List<ShoppingCart>> shoppingCartCaptor = ArgumentCaptor.forClass(List.class);
+
+        verify(shoppingCartPersistencePort, times(ONE)).saveAll(shoppingCartCaptor.capture());
+        shoppingCartCaptor.getValue().forEach(item ->
+                assertEquals(ZERO,item.getAmount())
+                );
+
+    }
+
+    @Test
+    @DisplayName("Should restore the products from the cart")
+    void shouldRestoreTheProductsFromTheCart(){
+        List<ShoppingCart> shoppingCartList = Arrays.asList(new ShoppingCart(VALID_ID, VALID_ID, VALID_ID_PRODUCT, VALID_AMOUNT));
+        List<ShoppingCart> shoppingCartListMocked = Arrays.asList(new ShoppingCart(VALID_ID, VALID_ID, VALID_ID_PRODUCT, ZERO));
+        when(this.authenticationPersistencePort.getUserId()).thenReturn(VALID_ID);
+        when(this.shoppingCartPersistencePort.findByIdUserAndIdProductIn(VALID_ID, List.of(VALID_ID)))
+                .thenReturn(shoppingCartListMocked );
+
+        this.shoppingCartUseCase.restoreShoppingCartFromShoppingCartList(shoppingCartList);
+
+        ArgumentCaptor<List<ShoppingCart>> shoppingCartCaptor = ArgumentCaptor.forClass(List.class);
+
+        verify(shoppingCartPersistencePort, times(ONE)).saveAll(shoppingCartCaptor.capture());
+        shoppingCartCaptor.getValue().forEach(item ->
+                assertNotEquals(ZERO,item.getAmount())
         );
+
     }
 }

@@ -28,6 +28,7 @@ public class ShoppingCartValidator {
 
     static {
         EXCEPTION_MAP.put(PRODUCT_ID_INVALID, noMessage -> new ProductIdIsInvalidException(PRODUCT_ID_INVALID));
+        EXCEPTION_MAP.put(SHOPPING_CART_ID_INVALID, noMessage -> new ShoppingCartIdIsInvalidException(SHOPPING_CART_ID_INVALID));
         EXCEPTION_MAP.put(AMOUNT_INVALID, noMessage -> new AmountIsInvalidException(AMOUNT_INVALID));
         EXCEPTION_MAP.put(INSUFFICIENT_AMOUNT, day -> new InsufficientStockException(messageForInsufficientStock(day)));
         EXCEPTION_MAP.put(SHOPPING_CART_PAGE_NUMBER_IS_INVALID, noMessage -> new ShoppingCartPageNumberIsInvalidException(SHOPPING_CART_PAGE_NUMBER_IS_INVALID));
@@ -38,22 +39,23 @@ public class ShoppingCartValidator {
     }
 
     public static void addProductToShoppingCart(ShoppingCart shoppingCart, IShoppingCartPersistencePort shoppingCartPersistencePort, IStockPersistencePort productPersistencePort) {
-        validateIdProduct(shoppingCart.getIdProduct());
+        validateId(shoppingCart.getIdProduct(),PRODUCT_ID_INVALID);
         validateAmount(shoppingCart, productPersistencePort, shoppingCartPersistencePort);
         validateMaxProductPerCategory(shoppingCart, shoppingCartPersistencePort, productPersistencePort);
     }
 
-    public static void getPaginatedProductsInShoppingCart(String sortDirection, int page, int size, String brandName, String categoryName) {
+    public static void getPaginatedProductsInShoppingCart(String sortDirection, int page, int size) {
         validateGreaterThanToOne(size, SHOPPING_CART_PAGE_SIZE_IS_INVALID);
         validateGreaterThan(page, SHOPPING_CART_PAGE_NUMBER_IS_INVALID, ZERO, ZERO);
         validateSortDirection(sortDirection);
-        if ((brandName == null || brandName.isEmpty()) && (categoryName == null || categoryName.isEmpty())) {
-            throw new ProductFilterNotFoundException(PRODUCT_FILTER_NOT_FOUND);
-        }
     }
 
-    public static void validateIdProduct(Long id) {
-        validateGreaterThanToOne(id, PRODUCT_ID_INVALID);
+    public static void validateId(Long id, ExceptionResponse exceptionResponse) {
+        validateGreaterThanToOne(id, exceptionResponse);
+    }
+
+    public static void validateIdShoppingCart(Long id) {
+        validateGreaterThanToOne(id, SHOPPING_CART_ID_INVALID);
     }
 
     private static void validateAmount(ShoppingCart shoppingCart, IStockPersistencePort productPersistencePort, IShoppingCartPersistencePort shoppingCartPersistencePort) {
@@ -80,7 +82,7 @@ public class ShoppingCartValidator {
         }
     }
 
-    private static <T extends Number> void validateGreaterThanToOne(T number, ExceptionResponse typeException) {
+    public static <T extends Number> void validateGreaterThanToOne(T number, ExceptionResponse typeException) {
         validateGreaterThan(number, typeException, ONE, ZERO);
     }
 

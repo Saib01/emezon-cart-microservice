@@ -16,9 +16,9 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import static com.emazon.cart.domain.exeption.ExceptionResponse.PRODUCT_NOT_FOUND;
+import static com.emazon.cart.domain.exeption.ExceptionResponse.*;
 import static com.emazon.cart.domain.utils.ShoppingCartValidator.messageForInsufficientStock;
-import static com.emazon.cart.domain.utils.ShoppingCartValidator.validateIdProduct;
+import static com.emazon.cart.domain.utils.ShoppingCartValidator.validateId;
 import static org.hibernate.type.descriptor.java.IntegerJavaType.ZERO;
 
 public class ShoppingCartUseCase implements IShoppingCartServicePort {
@@ -32,12 +32,6 @@ public class ShoppingCartUseCase implements IShoppingCartServicePort {
         this.authenticationPersistencePort = authenticationPersistencePort;
     }
 
-    private static PageShopping<Product> getResponsePageShoppingEmpty() {
-        return new PageShopping<>(
-                List.of(), ZERO, ZERO, true, true, ZERO
-        );
-    }
-
     @Override
     public void addProductToShoppingCart(ShoppingCart shoppingCart) {
         shoppingCart.setIdUser(this.authenticationPersistencePort.getUserId());
@@ -47,7 +41,7 @@ public class ShoppingCartUseCase implements IShoppingCartServicePort {
 
     @Override
     public void removeProductFromShoppingCart(Long productId) {
-        validateIdProduct(productId);
+        validateId(productId,PRODUCT_ID_INVALID);
         ShoppingCart shoppingCart = shoppingCartPersistencePort.findByIdUserAndIdProduct(
                 this.authenticationPersistencePort.getUserId(), productId);
         if (shoppingCart == null || shoppingCart.getAmount().equals(ZERO)) {
@@ -59,7 +53,7 @@ public class ShoppingCartUseCase implements IShoppingCartServicePort {
 
     @Override
     public PageShopping<Product> getPaginatedProductsInShoppingCart(String brandName, String categoryName, String sortDirection, int page, int size) {
-        ShoppingCartValidator.getPaginatedProductsInShoppingCart(sortDirection, page, size, brandName, categoryName);
+        ShoppingCartValidator.getPaginatedProductsInShoppingCart(sortDirection, page, size);
 
         Long userId = this.authenticationPersistencePort.getUserId();
 
@@ -75,8 +69,45 @@ public class ShoppingCartUseCase implements IShoppingCartServicePort {
                 getTotal(productResponsePageShopping,
                         userId, productIds)
         );
-
         return productResponsePageShopping;
+    }
+
+    @Override
+    public void removeProductListFromShoppingCart(List<Long> productIdList) {
+
+        List<ShoppingCart> shoppingCartList = getListShoppingCartInListIdProduct(productIdList);
+
+        shoppingCartList.forEach(shoppingCart -> shoppingCart.setAmount(ZERO));
+
+        this.shoppingCartPersistencePort.saveAll(shoppingCartList);
+    }
+
+    @Override
+    public List<ShoppingCart> getListShoppingCartInListIdProduct(List<Long> productIdList) {
+        productIdList.forEach(ShoppingCartValidator::validateIdShoppingCart);
+        List<ShoppingCart> shoppingCartList = this.shoppingCartPersistencePort
+                .getShoppingCartListByIdProductInAndUserId(this.authenticationPersistencePort.getUserId(), productIdList);
+        if (shoppingCartList.isEmpty() || shoppingCartList.size() != productIdList.size()) {
+            throw new ProductNotFoundException(PRODUCT_NOT_FOUND);
+        }
+        return shoppingCartList;
+    }
+
+    @Override
+    public void restoreShoppingCartFromShoppingCartList(List<ShoppingCart> shoppingCartList) {
+        if (shoppingCartList.isEmpty()) {
+            throw new ProductNotFoundException(PRODUCT_NOT_FOUND);
+        }
+        List<Long> shoppingCartIdList = shoppingCartList.stream().map(ShoppingCart::getIdProduct).toList();
+        Map<Long, Integer> amountInCart = shoppingCartList.stream().collect(Collectors.toMap(ShoppingCart::getIdProduct, ShoppingCart::getAmount));
+        List<ShoppingCart> shoppingCartListToSave = shoppingCartPersistencePort.findByIdUserAndIdProductIn(this.authenticationPersistencePort.getUserId(), shoppingCartIdList);
+        shoppingCartListToSave.forEach(shoppingCart -> shoppingCart.setAmount(amountInCart.get(shoppingCart.getIdProduct())));
+        this.shoppingCartPersistencePort.saveAll(shoppingCartListToSave);
+    }
+
+    @Override
+    public Integer countByUserId() {
+        return this.shoppingCartPersistencePort.countByUserId(this.authenticationPersistencePort.getUserId());
     }
 
     private Double getTotal(PageShopping<Product> productPageShopping, Long userId, List<Long> productIds) {
@@ -89,7 +120,7 @@ public class ShoppingCartUseCase implements IShoppingCartServicePort {
             if (product.getUnitsInCart() > product.getAmount()) {
                 product.setRestockDate(restockDay);
             } else {
-                total.updateAndGet(v -> v + product.getPrice() * product.getAmount());
+                total.updateAndGet(v -> v + product.getPrice() *product.getUnitsInCart());
             }
         });
         return total.get();
@@ -98,13 +129,10 @@ public class ShoppingCartUseCase implements IShoppingCartServicePort {
     private PageShopping<Product> getPaginatedProductsInShoppingCart(
             String brandName, String categoryName, String sortDirection, int page, int size, List<Long> productIds
     ) {
-        try {
             return productIds.isEmpty() ?
-                    getResponsePageShoppingEmpty()
+                    new PageShopping<>(List.of(), ZERO, ZERO, true, true, ZERO)
                     : this.productPersistencePort
                     .getPaginatedProductsInShoppingCart(productIds, brandName, categoryName, sortDirection, page, size);
-        } catch (RuntimeException e) {
-            return getResponsePageShoppingEmpty();
-        }
     }
+
 }

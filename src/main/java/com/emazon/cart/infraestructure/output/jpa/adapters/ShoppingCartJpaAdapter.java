@@ -29,6 +29,7 @@ public class ShoppingCartJpaAdapter implements IShoppingCartPersistencePort {
         );
     }
 
+
     @Override
     public List<Long> getProductIds(Long id) {
         return this.shoppingCartRepository.findByIdUserAndAmountGreaterThan(id, ZERO)
@@ -46,10 +47,31 @@ public class ShoppingCartJpaAdapter implements IShoppingCartPersistencePort {
     }
 
     @Override
+    public List<ShoppingCart> findByIdUserAndIdProductIn(Long idUser, List<Long> idList) {
+        return this.shoppingCartEntityMapper.toShoppingCartList(
+                this.shoppingCartRepository.findByIdUserAndIdProductIn(idUser, idList).orElse(List.of())
+        );
+
+    }
+
+    @Override
     public List<ShoppingCart> getShoppingCartListByIdProductInAndUserId(Long idUser, List<Long> idList) {
         return this.shoppingCartEntityMapper.toShoppingCartList(
                 this.shoppingCartRepository.findByIdUserAndIdProductInAndAmountGreaterThan(idUser, idList, ZERO).orElse(List.of())
         );
+    }
+
+    @Override
+    public void saveAll(List<ShoppingCart> shoppingCartList) {
+        this.shoppingCartRepository.saveAll(
+                this.shoppingCartEntityMapper.toShoppingCartarEntityList(shoppingCartList)
+        );
+    }
+
+
+    @Override
+    public Integer countByUserId(Long userId) {
+        return this.shoppingCartRepository.sumAmountByIdUserAndAmountGreaterThan(userId, ZERO);
     }
 
 }
